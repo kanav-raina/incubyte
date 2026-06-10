@@ -6,6 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import analytics, employees, meta
 from app.config import get_settings
 
+_TAGS_METADATA = [
+    {"name": "meta", "description": "Health check and reference data for filters."},
+    {"name": "employees", "description": "Manage employees and their compensation."},
+    {
+        "name": "analytics",
+        "description": "Org-wide pay insights: totals, medians, grouping and distribution.",
+    },
+]
+
 
 def create_app() -> FastAPI:
     settings = get_settings()
@@ -13,6 +22,7 @@ def create_app() -> FastAPI:
         title="Salary Management API",
         version="0.1.0",
         description="Manage employee salary data and answer org-wide pay questions.",
+        openapi_tags=_TAGS_METADATA,
     )
 
     app.add_middleware(

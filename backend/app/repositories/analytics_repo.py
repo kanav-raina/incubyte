@@ -79,20 +79,13 @@ def min_max(session: Session, where: ColumnElement | None = None) -> tuple[int, 
     return int(round(low)), int(round(high))
 
 
-def percentile(
-    session: Session, fraction: float, where: ColumnElement | None = None
-) -> int | None:
+def percentile(session: Session, fraction: float, where: ColumnElement | None = None) -> int | None:
     """Nearest-rank percentile of normalized salary, evaluated in SQL."""
     count = session.execute(_with_columns(func.count(), where=where)).scalar_one()
     if not count:
         return None
     offset = max(math.ceil(fraction * count) - 1, 0)
-    stmt = (
-        _with_columns(BASE_MINOR, where=where)
-        .order_by(BASE_MINOR)
-        .offset(offset)
-        .limit(1)
-    )
+    stmt = _with_columns(BASE_MINOR, where=where).order_by(BASE_MINOR).offset(offset).limit(1)
     value = session.execute(stmt).scalar_one()
     return int(round(value))
 

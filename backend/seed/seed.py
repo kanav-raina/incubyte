@@ -95,9 +95,7 @@ def _insert_reference_data(session: Session) -> None:
         Country(code=code, name=name, currency=currency, fx_rate_to_base=fx)
         for code, name, currency, fx, _ in COUNTRIES
     )
-    session.add_all(
-        Department(id=i, name=name) for i, name in enumerate(DEPARTMENTS, start=1)
-    )
+    session.add_all(Department(id=i, name=name) for i, name in enumerate(DEPARTMENTS, start=1))
     session.commit()
 
 
@@ -110,9 +108,7 @@ def _native_salary_minor(
     return decimal_to_minor(native_major, currency)
 
 
-def _build_rows(
-    rng: random.Random, fake: Faker, count: int
-) -> tuple[list[dict], list[dict]]:
+def _build_rows(rng: random.Random, fake: Faker, count: int) -> tuple[list[dict], list[dict]]:
     """Build employee and compensation insert mappings with explicit ids."""
     employees: list[dict] = []
     compensations: list[dict] = []
