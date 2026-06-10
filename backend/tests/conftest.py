@@ -9,14 +9,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401  (register models on Base.metadata)
-from app.database import Base
+from app.database import Base, get_db
 from app.main import app
-
-
-@pytest.fixture
-def client() -> TestClient:
-    """A TestClient bound to the FastAPI app."""
-    return TestClient(app)
 
 
 @pytest.fixture
@@ -35,3 +29,16 @@ def db_session() -> Generator[Session, None, None]:
     finally:
         session.close()
         Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def client(db_session: Session) -> Generator[TestClient, None, None]:
+    """A TestClient whose get_db dependency uses the in-memory session."""
+
+    def override_get_db() -> Generator[Session, None, None]:
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
