@@ -12,15 +12,17 @@ Built as an assessment; see `docs/` for the thinking behind it.
 - **Backend — complete.** FastAPI + SQLAlchemy, employee CRUD, reference data,
   full analytics (summary, by-country, by-department, distribution), a
   deterministic 10,000-employee seed, Alembic migrations, and 52 passing tests.
-- **Frontend — planned.** React + Vite SPA (see `docs/backend.md` and
-  `docs/design-decisions.md`).
+- **Frontend — complete.** React + Vite + TypeScript SPA with Mantine: an
+  analytics dashboard (summary cards, pay-by-country and comp-band charts,
+  percentiles) and an employees view with search, filters, pagination, and
+  create/edit/deactivate. Vitest component tests.
 
 ## Repository layout
 
 ```
 docs/        Requirements, design decisions, backend notes
 backend/     FastAPI API, data model, analytics, seed, tests
-frontend/    React SPA (to be added)
+frontend/    React SPA (dashboard + employees)
 ```
 
 ## Quick start (backend)
@@ -43,6 +45,17 @@ Run the tests:
 ```bash
 cd backend
 uv run pytest
+```
+
+## Quick start (frontend)
+
+With the backend running on port 8000:
+
+```bash
+cd frontend
+npm install
+npm run dev      # http://localhost:5173 (proxies /api to the backend)
+npm test         # component tests
 ```
 
 ## Documentation
