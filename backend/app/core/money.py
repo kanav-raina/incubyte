@@ -11,17 +11,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
-# Most currencies use 2 decimal places. A few (e.g. JPY, KRW) use 0.
-_MINOR_UNIT_EXPONENTS: dict[str, int] = {
-    "JPY": 0,
-    "KRW": 0,
-}
+# Most currencies use 2 decimal places. A few use 0.
+ZERO_DECIMAL_CURRENCIES: frozenset[str] = frozenset({"JPY", "KRW"})
 _DEFAULT_EXPONENT = 2
 
 
 def minor_unit_exponent(currency: str) -> int:
     """Number of decimal places for a currency's minor unit (default 2)."""
-    return _MINOR_UNIT_EXPONENTS.get(currency.upper(), _DEFAULT_EXPONENT)
+    return 0 if currency.upper() in ZERO_DECIMAL_CURRENCIES else _DEFAULT_EXPONENT
 
 
 def minor_to_decimal(amount_minor: int, currency: str) -> Decimal:

@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import employees, meta
+from app.api.routes import analytics, employees, meta
 from app.config import get_settings
 
 
@@ -25,6 +25,7 @@ def create_app() -> FastAPI:
 
     app.include_router(meta.router)
     app.include_router(employees.router)
+    app.include_router(analytics.router)
     return app
 
 

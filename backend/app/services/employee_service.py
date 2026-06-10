@@ -11,7 +11,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.money import convert_to_base, decimal_to_minor, format_money, minor_to_decimal
+from app.core.money import convert_to_base, decimal_to_minor
 from app.core.pagination import Page, PageParams
 from app.models import Compensation, Employee, EmploymentStatus
 from app.repositories import employee_repo as repo
@@ -28,28 +28,19 @@ class ReferenceNotFoundError(Exception):
     """Raised when a referenced country or department does not exist."""
 
 
-def _money_out(amount_minor: int, currency: str) -> MoneyOut:
-    return MoneyOut(
-        minor=amount_minor,
-        currency=currency,
-        amount=minor_to_decimal(amount_minor, currency),
-        formatted=format_money(amount_minor, currency),
-    )
-
-
 def _to_read(row: EmployeeRow, base_currency: str) -> EmployeeRead:
     employee, compensation, country, department = row
     current_salary = None
     salary_in_base = None
     if compensation is not None:
-        current_salary = _money_out(compensation.base_salary, compensation.currency)
+        current_salary = MoneyOut.from_minor(compensation.base_salary, compensation.currency)
         base_minor = convert_to_base(
             compensation.base_salary,
             compensation.currency,
             country.fx_rate_to_base,
             base_currency,
         )
-        salary_in_base = _money_out(base_minor, base_currency)
+        salary_in_base = MoneyOut.from_minor(base_minor, base_currency)
 
     return EmployeeRead(
         id=employee.id,

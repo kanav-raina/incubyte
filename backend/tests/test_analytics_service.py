@@ -14,11 +14,15 @@ Terminated e6 US L7 is excluded.
 Sorted base-minor: [10M, 10M, 10M, 20M, 30M]
 """
 
+from datetime import date
+
 import pytest
 from sqlalchemy.orm import Session
 
 from app.models import Compensation, Country, Department, Employee, EmploymentStatus
 from app.services import analytics_service as service
+
+_HIRE_DATE = date(2024, 1, 1)
 
 
 @pytest.fixture
@@ -53,7 +57,7 @@ def dataset(db_session: Session) -> Session:
                 department_id=1,
                 role="Engineer",
                 level=level,
-                hire_date="2024-01-01",
+                hire_date=_HIRE_DATE,
                 status=status,
             )
         )
@@ -62,7 +66,7 @@ def dataset(db_session: Session) -> Session:
                 employee_id=emp_id,
                 base_salary=salary,
                 currency=currency,
-                effective_from="2024-01-01",
+                effective_from=_HIRE_DATE,
                 effective_to=None,
             )
         )
