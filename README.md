@@ -63,3 +63,4 @@ npm test         # component tests
 - [`docs/requirements.md`](docs/requirements.md) — one-page requirements, scope, and deliberate cuts
 - [`docs/design-decisions.md`](docs/design-decisions.md) — design, architecture, AI workflow, trade-offs
 - [`docs/backend.md`](docs/backend.md) — backend technology and structure
+- [`docs/ai-usage.md`](docs/ai-usage.md) — how AI tooling was used and kept correct
