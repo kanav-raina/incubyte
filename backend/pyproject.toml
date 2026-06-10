@@ -11,6 +11,8 @@ dependencies = [
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
     "psycopg[binary]>=3.2",
+    # Used by the seed script, which runs at container start-up.
+    "faker>=33",
 ]
 
 [dependency-groups]
@@ -18,7 +20,6 @@ dev = [
     "pytest>=8.3",
     "httpx>=0.28",
     "ruff>=0.9",
-    "faker>=33",
 ]
 
 [tool.ruff]

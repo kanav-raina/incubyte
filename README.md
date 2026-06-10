@@ -20,12 +20,27 @@ Built as an assessment; see `docs/` for the thinking behind it.
 ## Repository layout
 
 ```
-docs/        Requirements, design decisions, backend notes
-backend/     FastAPI API, data model, analytics, seed, tests
-frontend/    React SPA (dashboard + employees)
+docs/                 Requirements, design decisions, backend notes
+backend/              FastAPI API, data model, analytics, seed, tests
+frontend/             React SPA (dashboard + employees)
+docker-compose.yml    Runs the full stack
 ```
 
-## Quick start (backend)
+## Quick start (Docker — runs everything)
+
+Requires Docker. From the repo root:
+
+```bash
+docker compose up --build
+```
+
+- App: http://localhost:5173
+- API docs: http://localhost:8000/docs
+
+The backend container applies migrations and seeds 10,000 employees on first
+start; the frontend is served by nginx, which proxies `/api` to the backend.
+
+## Quick start (backend, local)
 
 Requires [uv](https://docs.astral.sh/uv/).
 
