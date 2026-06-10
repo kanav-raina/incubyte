@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Project-specific ---
+# SQLite databases (generic)
+*.db
+*.sqlite
+*.sqlite3
+# Keep example env files
+!*.env.example
+# Frontend (Node)
+node_modules/
+.vite/
+# OS files
+.DS_Store
+Thumbs.db
