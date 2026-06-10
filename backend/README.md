@@ -13,6 +13,8 @@ questions. See `../docs/backend.md` for the full design.
 cd backend
 uv sync                       # creates .venv and installs deps (fetches Python 3.12)
 cp .env.example .env          # adjust if needed
+uv run alembic upgrade head   # create the schema
+uv run python -m seed.seed    # seed 10,000 employees (deterministic)
 ```
 
 ## Run
