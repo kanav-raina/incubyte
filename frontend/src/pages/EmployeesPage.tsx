@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
+  ActionIcon,
+  Button,
   Group,
   Pagination,
   Paper,
@@ -9,11 +11,14 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
-import { IconSearch } from '@tabler/icons-react'
-import { useCountries, useDepartments, useEmployees } from '../api/hooks'
-import type { EmployeeFilters, EmploymentStatus } from '../api/types'
+import { notifications } from '@mantine/notifications'
+import { IconEdit, IconPlus, IconSearch, IconUserOff } from '@tabler/icons-react'
+import { useCountries, useDeactivateEmployee, useDepartments, useEmployees } from '../api/hooks'
+import type { Employee, EmployeeFilters, EmploymentStatus } from '../api/types'
+import { EmployeeFormModal } from '../components/EmployeeFormModal'
 import { QueryState } from '../components/QueryState'
 import { StatusBadge } from '../components/StatusBadge'
 
@@ -36,8 +41,34 @@ export function EmployeesPage() {
   const [status, setStatus] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 
+  const [formOpened, setFormOpened] = useState(false)
+  const [editing, setEditing] = useState<Employee | null>(null)
+
   const countries = useCountries()
   const departments = useDepartments()
+  const deactivate = useDeactivateEmployee()
+
+  const openCreate = () => {
+    setEditing(null)
+    setFormOpened(true)
+  }
+
+  const openEdit = (employee: Employee) => {
+    setEditing(employee)
+    setFormOpened(true)
+  }
+
+  const handleDeactivate = (employee: Employee) => {
+    if (!window.confirm(`Deactivate ${employee.first_name} ${employee.last_name}?`)) return
+    deactivate.mutate(employee.id, {
+      onSuccess: () => notifications.show({ message: 'Employee deactivated', color: 'teal' }),
+      onError: (err) =>
+        notifications.show({
+          message: err instanceof Error ? err.message : 'Failed',
+          color: 'red',
+        }),
+    })
+  }
 
   const filters: EmployeeFilters = useMemo(
     () => ({
@@ -65,12 +96,17 @@ export function EmployeesPage() {
   return (
     <Stack>
       <Group justify="space-between" align="flex-end">
-        <Title order={2}>Employees</Title>
-        {data && (
-          <Text c="dimmed" size="sm">
-            {data.total.toLocaleString()} employees
-          </Text>
-        )}
+        <Group>
+          <Title order={2}>Employees</Title>
+          {data && (
+            <Text c="dimmed" size="sm">
+              {data.total.toLocaleString()} total
+            </Text>
+          )}
+        </Group>
+        <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
+          New employee
+        </Button>
       </Group>
 
       <Paper withBorder p="md" radius="md">
@@ -139,6 +175,7 @@ export function EmployeesPage() {
                   <Table.Th>Status</Table.Th>
                   <Table.Th>Salary (local)</Table.Th>
                   <Table.Th>Salary (USD)</Table.Th>
+                  <Table.Th w={90}>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -161,11 +198,30 @@ export function EmployeesPage() {
                     </Table.Td>
                     <Table.Td>{employee.current_salary?.formatted ?? '—'}</Table.Td>
                     <Table.Td>{employee.salary_in_base?.formatted ?? '—'}</Table.Td>
+                    <Table.Td>
+                      <Group gap="xs" wrap="nowrap">
+                        <Tooltip label="Edit">
+                          <ActionIcon variant="subtle" onClick={() => openEdit(employee)}>
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label="Deactivate">
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            disabled={employee.status === 'terminated'}
+                            onClick={() => handleDeactivate(employee)}
+                          >
+                            <IconUserOff size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    </Table.Td>
                   </Table.Tr>
                 ))}
                 {data?.items.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={8}>
+                    <Table.Td colSpan={9}>
                       <Text c="dimmed" ta="center" py="lg">
                         No employees match these filters.
                       </Text>
@@ -181,6 +237,12 @@ export function EmployeesPage() {
           <Pagination total={totalPages} value={page} onChange={setPage} />
         </Group>
       </QueryState>
+
+      <EmployeeFormModal
+        opened={formOpened}
+        onClose={() => setFormOpened(false)}
+        employee={editing}
+      />
     </Stack>
   )
 }
