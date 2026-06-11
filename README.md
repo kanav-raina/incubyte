@@ -7,6 +7,21 @@ comparisons in a common currency, and pay distribution by level).
 
 Built as an assessment; see `docs/` for the thinking behind it.
 
+## Demo
+
+📹 **[Watch the demo video](https://drive.google.com/file/d/1LRM6vdeSp18t5Q_QI0gui4brJKCz9xvr/view)** — a short walkthrough of the app.
+
+## Run it
+
+One command brings up the whole stack (backend + frontend) with Docker:
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:5173 (app) and http://localhost:8000/docs (API).
+See [Quick start](#quick-start-docker--runs-everything) for details.
+
 ## Status
 
 - **Backend — complete.** FastAPI + SQLAlchemy, employee CRUD, reference data,
