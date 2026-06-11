@@ -39,7 +39,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockApi.getCountries.mockResolvedValue([{ code: 'US', name: 'United States', currency: 'USD' }])
   mockApi.getDepartments.mockResolvedValue([{ id: 1, name: 'Engineering' }])
-  mockApi.updateEmployee.mockImplementation((_id, _payload) => Promise.resolve(makeEmployee()))
+  mockApi.updateEmployee.mockResolvedValue(makeEmployee())
 })
 
 describe('EmployeeFormModal', () => {
