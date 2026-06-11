@@ -37,7 +37,10 @@ function makeEmployee(): Employee {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockApi.getCountries.mockResolvedValue([{ code: 'US', name: 'United States', currency: 'USD' }])
+  mockApi.getCountries.mockResolvedValue([
+    { code: 'US', name: 'United States', currency: 'USD' },
+    { code: 'IN', name: 'India', currency: 'INR' },
+  ])
   mockApi.getDepartments.mockResolvedValue([{ id: 1, name: 'Engineering' }])
   mockApi.updateEmployee.mockResolvedValue(makeEmployee())
 })
@@ -59,6 +62,20 @@ describe('EmployeeFormModal', () => {
         expect.objectContaining({ first_name: 'Ada', role: 'Senior Engineering', salary: '150000' }),
       )
     })
+  })
+
+  it('clears the salary when the country changes', async () => {
+    renderWithProviders(
+      <EmployeeFormModal opened employee={makeEmployee()} onClose={() => {}} />,
+    )
+
+    const salary = await screen.findByLabelText('Salary (USD)')
+    expect(salary).toHaveValue('150,000')
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Country' }))
+    await userEvent.click(await screen.findByText('India'))
+
+    expect(screen.getByLabelText('Salary (INR)')).toHaveValue('')
   })
 
   it('validates required fields when creating', async () => {

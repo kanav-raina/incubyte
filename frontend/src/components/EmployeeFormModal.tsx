@@ -143,6 +143,15 @@ export function EmployeeFormModal({ opened, onClose, employee }: EmployeeFormMod
   const selectedCurrency =
     countries.data?.find((c) => c.code === form.values.country_code)?.currency
 
+  // Salary is entered in the country's currency, so changing the country
+  // clears it to force a deliberate re-entry in the new currency.
+  const handleCountryChange = (value: string | null) => {
+    if (value !== form.values.country_code) {
+      form.setFieldValue('salary', '')
+    }
+    form.setFieldValue('country_code', value ?? '')
+  }
+
   return (
     <Modal opened={opened} onClose={onClose} title={isEdit ? 'Edit employee' : 'New employee'} centered>
       <form onSubmit={handleSubmit}>
@@ -157,6 +166,7 @@ export function EmployeeFormModal({ opened, onClose, employee }: EmployeeFormMod
             searchable
             data={(countries.data ?? []).map((c) => ({ value: c.code, label: c.name }))}
             {...form.getInputProps('country_code')}
+            onChange={handleCountryChange}
           />
           <Select
             label="Department"
