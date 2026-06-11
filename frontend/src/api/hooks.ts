@@ -17,13 +17,6 @@ export function useEmployees(filters: EmployeeFilters) {
   })
 }
 
-export function useEmployee(id: number) {
-  return useQuery({
-    queryKey: keys.employee(id),
-    queryFn: () => api.getEmployee(id),
-  })
-}
-
 export function useCountries() {
   return useQuery({ queryKey: keys.countries, queryFn: api.getCountries, staleTime: Infinity })
 }

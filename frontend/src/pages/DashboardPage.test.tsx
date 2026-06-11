@@ -9,6 +9,7 @@ vi.mock('../api/client', () => ({
   api: {
     getSummary: vi.fn(),
     getByCountry: vi.fn(),
+    getByDepartment: vi.fn(),
     getDistribution: vi.fn(),
   },
 }))
@@ -41,6 +42,19 @@ beforeEach(() => {
       },
     ],
   })
+  mockApi.getByDepartment.mockResolvedValue({
+    base_currency: 'USD',
+    groups: [
+      {
+        key: '1',
+        label: 'Engineering',
+        headcount: 3400,
+        total: money('400000000', '...'),
+        average: money('118000.00', '118,000.00 USD'),
+        median: money('95000.00', '95,000.00 USD'),
+      },
+    ],
+  })
   mockApi.getDistribution.mockResolvedValue({
     base_currency: 'USD',
     percentiles: { p50: money('73672.50', '73,672.50 USD') },
@@ -70,5 +84,12 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />)
 
     expect(await screen.findByText('p50')).toBeInTheDocument()
+  })
+
+  it('renders the by-country and by-department breakdowns', async () => {
+    renderWithProviders(<DashboardPage />)
+
+    expect(await screen.findByText('Pay by country (USD)')).toBeInTheDocument()
+    expect(screen.getByText('Pay by department (USD)')).toBeInTheDocument()
   })
 })

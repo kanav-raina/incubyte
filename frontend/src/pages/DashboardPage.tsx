@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { useByCountry, useDistribution, useSummary } from '../api/hooks'
+import { useByCountry, useByDepartment, useDistribution, useSummary } from '../api/hooks'
 import { QueryState } from '../components/QueryState'
 import { StatCard } from '../components/StatCard'
 import { compactCurrency, currencyFormatter, toNumber } from '../utils/format'
@@ -30,16 +30,24 @@ function ChartCard({ title, children }: { title: string; children: ReactNode }) 
 export function DashboardPage() {
   const summary = useSummary()
   const byCountry = useByCountry()
+  const byDepartment = useByDepartment()
   const distribution = useDistribution()
 
-  const isLoading = summary.isLoading || byCountry.isLoading || distribution.isLoading
-  const error = summary.error || byCountry.error || distribution.error
+  const isLoading =
+    summary.isLoading || byCountry.isLoading || byDepartment.isLoading || distribution.isLoading
+  const error = summary.error || byCountry.error || byDepartment.error || distribution.error
 
   const baseCurrency = summary.data?.base_currency ?? 'USD'
   const fmt = currencyFormatter(baseCurrency)
 
   const countryData = (byCountry.data?.groups ?? []).map((g) => ({
     name: g.key,
+    average: toNumber(g.average.amount),
+    median: toNumber(g.median?.amount),
+  }))
+
+  const departmentData = (byDepartment.data?.groups ?? []).map((g) => ({
+    name: g.label,
     average: toNumber(g.average.amount),
     median: toNumber(g.median?.amount),
   }))
@@ -119,6 +127,20 @@ export function DashboardPage() {
             </ChartCard>
           </Grid.Col>
         </Grid>
+
+        <ChartCard title={`Pay by department (${baseCurrency})`}>
+          <ResponsiveContainer width="100%" height={360}>
+            <BarChart data={departmentData} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" tickFormatter={compactCurrency} />
+              <YAxis type="category" dataKey="name" width={130} />
+              <Tooltip formatter={(value) => fmt(Number(value))} />
+              <Legend />
+              <Bar dataKey="average" name="Average" fill="#7950f2" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="median" name="Median" fill="#15aabf" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
         <ChartCard title={`Compensation bands by level (${baseCurrency})`}>
           <ResponsiveContainer width="100%" height={320}>
