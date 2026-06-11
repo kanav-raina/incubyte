@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Date, ForeignKey, String
+from sqlalchemy import BigInteger, Date, ForeignKey, Index, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -16,6 +16,16 @@ if TYPE_CHECKING:
 
 class Compensation(Base):
     __tablename__ = "compensations"
+    __table_args__ = (
+        # At most one current compensation (effective_to IS NULL) per employee.
+        Index(
+            "uq_current_compensation_per_employee",
+            "employee_id",
+            unique=True,
+            sqlite_where=text("effective_to IS NULL"),
+            postgresql_where=text("effective_to IS NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     employee_id: Mapped[int] = mapped_column(

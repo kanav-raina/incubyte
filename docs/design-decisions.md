@@ -70,7 +70,16 @@ intentionally thin (single-user / stubbed login). Engineering time is spent on
 the data and analytics core where the value is. This is called out as a
 deliberate cut, not an oversight.
 
-### 2.7 Tests lead the implementation (TDD)
+### 2.7 Invariants enforced at the database
+
+Two integrity rules are enforced by the schema, not just the application:
+foreign keys (with SQLite's `PRAGMA foreign_keys=ON` set on connect so local
+behaves like Postgres), and a **partial unique index** ensuring at most one
+*current* compensation (`effective_to IS NULL`) per employee. The salary-change
+flow closes the old row and flushes before opening the new one so the index is
+never transiently violated.
+
+### 2.8 Tests lead the implementation (TDD)
 
 Core logic — money handling, currency normalization, percentile/median
 calculations — is written test-first (red → green → refactor). Tests use an

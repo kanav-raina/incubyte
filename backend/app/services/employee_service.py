@@ -208,7 +208,10 @@ def _apply_salary_change(session: Session, employee: Employee, salary: Decimal) 
 
     today = date.today()
     if current is not None:
+        # Close the current row and flush first, so the new current row does not
+        # transiently violate the one-current-compensation unique index.
         current.effective_to = today
+        session.flush()
     session.add(
         Compensation(
             employee_id=employee.id,
