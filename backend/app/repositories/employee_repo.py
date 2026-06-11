@@ -123,3 +123,9 @@ def get_current_compensation(session: Session, employee_id: int) -> Compensation
         Compensation.effective_to.is_(None),
     )
     return session.execute(stmt).scalar_one_or_none()
+
+
+def get_employee_by_email(session: Session, email: str) -> Employee | None:
+    return session.execute(
+        select(Employee).where(Employee.email == email)
+    ).scalar_one_or_none()

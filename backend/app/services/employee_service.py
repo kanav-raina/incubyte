@@ -7,6 +7,7 @@ display, and manages effective-dated compensation when salaries change.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
@@ -26,6 +27,15 @@ class EmployeeNotFoundError(Exception):
 
 class ReferenceNotFoundError(Exception):
     """Raised when a referenced country or department does not exist."""
+
+
+class DuplicateEmailError(Exception):
+    """Raised when an employee email is already in use."""
+
+
+class CountryChangeRequiresSalaryError(Exception):
+    """Raised when an employee's country changes to a different currency
+    without a salary in that new currency being provided."""
 
 
 def _to_read(row: EmployeeRow, base_currency: str) -> EmployeeRead:
@@ -96,6 +106,8 @@ def create_employee(session: Session, data: EmployeeCreate) -> EmployeeRead:
         raise ReferenceNotFoundError(f"Unknown country: {data.country_code}")
     if repo.get_department(session, data.department_id) is None:
         raise ReferenceNotFoundError(f"Unknown department: {data.department_id}")
+    if repo.get_employee_by_email(session, data.email) is not None:
+        raise DuplicateEmailError(data.email)
 
     employee = Employee(
         first_name=data.first_name,
@@ -133,6 +145,13 @@ def update_employee(session: Session, employee_id: int, data: EmployeeUpdate) ->
     if employee is None:
         raise EmployeeNotFoundError(str(employee_id))
 
+    if data.email is not None and data.email != employee.email:
+        existing = repo.get_employee_by_email(session, data.email)
+        if existing is not None and existing.id != employee.id:
+            raise DuplicateEmailError(data.email)
+
+    original_country_code = employee.country_code
+
     for field in ("first_name", "last_name", "email", "role", "level", "status", "manager_id"):
         value = getattr(data, field)
         if value is not None:
@@ -147,6 +166,22 @@ def update_employee(session: Session, employee_id: int, data: EmployeeUpdate) ->
             raise ReferenceNotFoundError(f"Unknown department: {data.department_id}")
         employee.department_id = data.department_id
 
+    # If the country (and therefore currency) changes, the existing compensation
+    # is in the old currency. Require a salary in the new currency so the stored
+    # compensation currency always matches the employee's country.
+    if data.country_code is not None and data.country_code != original_country_code:
+        new_country = repo.get_country(session, employee.country_code)
+        current = repo.get_current_compensation(session, employee.id)
+        if (
+            data.salary is None
+            and current is not None
+            and new_country is not None
+            and current.currency != new_country.currency
+        ):
+            raise CountryChangeRequiresSalaryError(
+                "Changing country to a different currency requires a new salary."
+            )
+
     if data.salary is not None:
         _apply_salary_change(session, employee, data.salary)
 
@@ -157,7 +192,7 @@ def update_employee(session: Session, employee_id: int, data: EmployeeUpdate) ->
     return _to_read(row, get_settings().base_currency)
 
 
-def _apply_salary_change(session: Session, employee: Employee, salary) -> None:
+def _apply_salary_change(session: Session, employee: Employee, salary: Decimal) -> None:
     """Close the current compensation and open a new one if the salary changed."""
     country = repo.get_country(session, employee.country_code)
     assert country is not None

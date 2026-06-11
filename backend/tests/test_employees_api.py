@@ -112,6 +112,53 @@ def test_update_missing_employee_returns_404(client: TestClient, seeded: Session
     assert response.status_code == 404
 
 
+def test_create_with_duplicate_email_returns_409(client: TestClient, seeded: Session) -> None:
+    payload = _new_employee_payload(email="dup@acme.example")
+    assert client.post("/api/employees", json=payload).status_code == 201
+
+    second = _new_employee_payload(email="dup@acme.example", first_name="Other")
+    assert client.post("/api/employees", json=second).status_code == 409
+
+
+def test_update_email_to_existing_returns_409(client: TestClient, seeded: Session) -> None:
+    a = client.post("/api/employees", json=_new_employee_payload(email="a@acme.example")).json()
+    client.post("/api/employees", json=_new_employee_payload(email="b@acme.example"))
+
+    response = client.patch(f"/api/employees/{a['id']}", json={"email": "b@acme.example"})
+    assert response.status_code == 409
+
+
+def test_change_country_without_salary_returns_422(client: TestClient, seeded: Session) -> None:
+    created = client.post(
+        "/api/employees", json=_new_employee_payload(email="moves@acme.example", country_code="US")
+    ).json()
+
+    # US (USD) -> IN (INR) without a salary in the new currency is rejected.
+    response = client.patch(f"/api/employees/{created['id']}", json={"country_code": "IN"})
+    assert response.status_code == 422
+
+
+def test_change_country_with_salary_normalizes_correctly(
+    client: TestClient, seeded: Session
+) -> None:
+    created = client.post(
+        "/api/employees", json=_new_employee_payload(email="moves2@acme.example", country_code="US")
+    ).json()
+
+    # Move to India with a salary of ₹1,000,000; FX 0.012 -> $12,000 in base.
+    response = client.patch(
+        f"/api/employees/{created['id']}",
+        json={"country_code": "IN", "salary": "1000000.00"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["current_salary"]["currency"] == "INR"
+    assert body["current_salary"]["minor"] == 100_000_000
+    assert body["salary_in_base"]["currency"] == "USD"
+    assert body["salary_in_base"]["minor"] == 1_200_000
+
+
 def test_deactivate_employee_soft_deletes(client: TestClient, seeded: Session) -> None:
     delete_response = client.delete("/api/employees/1")
     assert delete_response.status_code == 204

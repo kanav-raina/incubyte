@@ -38,6 +38,10 @@ def list_employees(
 def create_employee(payload: EmployeeCreate, db: Session = Depends(get_db)) -> EmployeeRead:
     try:
         return service.create_employee(db, payload)
+    except service.DuplicateEmailError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=f"Email already in use: {exc}"
+        ) from exc
     except service.ReferenceNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
@@ -62,7 +66,11 @@ def update_employee(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
         ) from None
-    except service.ReferenceNotFoundError as exc:
+    except service.DuplicateEmailError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=f"Email already in use: {exc}"
+        ) from exc
+    except (service.ReferenceNotFoundError, service.CountryChangeRequiresSalaryError) as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
         ) from exc

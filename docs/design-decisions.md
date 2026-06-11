@@ -205,7 +205,12 @@ If this graduated toward production, the next steps, roughly in priority order:
    manager / employee self-service), and an audit trail of who changed what.
 2. **Full salary-history UX** — view and edit raises over time, effective-dated
    changes, and change reasons.
-3. **Live currency rates** — pull FX from a rate provider with caching and a
+3. **Live currency rates + currency-keyed FX** — FX is currently stored on
+   `Country`, which works because each seeded country has a distinct currency;
+   the cleaner model is a currency→rate table (or a rate per compensation row).
+   Today an employee's country can only change currency together with a new
+   salary in that currency, which keeps the stored compensation currency
+   consistent. A production system would also pull live rates with caching and a
    historical rate table for point-in-time accuracy.
 4. **Richer pay-equity analytics** — gender/department pay-gap views, outlier
    detection, and comp-band breach alerts ("paid below band for level").
