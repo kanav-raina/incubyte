@@ -95,42 +95,71 @@ history is intended to show this rhythm rather than feature-dump commits.
 A **separated backend API + single-page frontend**, rather than a single
 full-stack framework.
 
-```
-┌─────────────────────┐        HTTPS / JSON        ┌──────────────────────────┐
-│   React + Vite SPA   │  ───────────────────────▶ │     FastAPI backend       │
-│  (Mantine + Recharts)│  ◀─────────────────────── │  (Pydantic + SQLAlchemy)  │
-└─────────────────────┘                            └────────────┬─────────────┘
-                                                                 │
-                                                                 ▼
-                                                   ┌──────────────────────────┐
-                                                   │  SQLite (dev/test)        │
-                                                   │  Postgres (deployed)      │
-                                                   └──────────────────────────┘
+```mermaid
+flowchart LR
+    SPA["React + Vite SPA<br/>(Mantine + Recharts)"]
+    API["FastAPI backend<br/>(Pydantic + SQLAlchemy)"]
+    DB[("SQLite (dev/test)<br/>Postgres (deployed)")]
+    SPA -- "HTTPS / JSON" --> API
+    API --> DB
 ```
 
 ### 3.2 Backend layering
 
+```mermaid
+flowchart TD
+    api["api/ — FastAPI routers (HTTP, validation, serialization)"]
+    services["services/ — business logic (analytics, compensation rules)"]
+    repositories["repositories/ — data access via SQLAlchemy"]
+    models["models/ — ORM entities"]
+    api --> services --> repositories --> models
 ```
-api/         FastAPI routers — HTTP, validation, serialization only
-services/    business logic — analytics, compensation rules (the testable core)
-repositories/ (or db/)  data access via SQLAlchemy
-models/      ORM entities
-schemas/     Pydantic request/response models
-seed/        10k-employee seed script
-```
+
+(`schemas/` holds Pydantic request/response models; `seed/` holds the
+10k-employee seed script.)
 
 The service layer holds the logic worth testing and is independent of FastAPI,
 so it can be unit-tested without spinning up the web server.
 
 ### 3.3 Data model (essentials)
 
-```
-Employee(id, name, email, country_fk, department_fk, role, level,
-         hire_date, status, manager_id?)
-Compensation(id, employee_fk, base_salary[int minor units], currency,
-             effective_from, effective_to)
-Country(code, name, currency, fx_rate_to_base)
-Department(id, name)
+```mermaid
+erDiagram
+    COUNTRY ||--o{ EMPLOYEE : "employs"
+    DEPARTMENT ||--o{ EMPLOYEE : "groups"
+    EMPLOYEE ||--o{ COMPENSATION : "has"
+    EMPLOYEE ||--o| EMPLOYEE : "manages"
+
+    COUNTRY {
+        string code PK
+        string name
+        string currency
+        numeric fx_rate_to_base
+    }
+    DEPARTMENT {
+        int id PK
+        string name
+    }
+    EMPLOYEE {
+        int id PK
+        string name
+        string email
+        string country_code FK
+        int department_id FK
+        string role
+        int level
+        date hire_date
+        enum status
+        int manager_id FK
+    }
+    COMPENSATION {
+        int id PK
+        int employee_id FK
+        bigint base_salary "minor units"
+        string currency
+        date effective_from
+        date effective_to "NULL = current"
+    }
 ```
 
 ### 3.4 Chosen stack and rationale
