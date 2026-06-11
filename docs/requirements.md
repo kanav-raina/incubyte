@@ -53,7 +53,8 @@ manageable and *answerable*.
 
 5. **Quality & delivery**
    - Meaningful, fast, deterministic tests around the core logic.
-   - Deployed, runnable software + a short demo video.
+   - Fully runnable with a single command (`docker compose up`) + a short demo
+     video. Containerized for deployment; a hosted instance is a fast follow.
 
 ---
 

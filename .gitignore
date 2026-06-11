@@ -230,3 +230,5 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+# Assessment brief (not part of the solution)
+*.pdf

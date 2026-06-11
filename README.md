@@ -26,11 +26,11 @@ See [Quick start](#quick-start-docker--runs-everything) for details.
 
 - **Backend — complete.** FastAPI + SQLAlchemy, employee CRUD, reference data,
   full analytics (summary, by-country, by-department, distribution), a
-  deterministic 10,000-employee seed, Alembic migrations, and 52 passing tests.
+  deterministic 10,000-employee seed, Alembic migrations, and 59 passing tests.
 - **Frontend — complete.** React + Vite + TypeScript SPA with Mantine: an
-  analytics dashboard (summary cards, pay-by-country and comp-band charts,
-  percentiles) and an employees view with search, filters, pagination, and
-  create/edit/deactivate. Vitest component tests.
+  analytics dashboard (summary cards, pay-by-country/department and comp-band
+  charts, percentiles) and an employees view with search, filters, pagination,
+  and create/edit/deactivate. 11 Vitest component tests.
 
 ## Repository layout
 
